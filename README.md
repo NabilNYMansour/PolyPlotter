@@ -1,4 +1,10 @@
-# Getting Started with Create React App
+# Poly Plotter
+This is a react app that is inspired by [Desmos Graphic Calculator](https://www.desmos.com/calculator) and is an attempt of recreating the plotting tool.
+
+To use the tool online, please visit https://nabilmansour.com/PolyPlotter/.
+
+To run the tool locally, please read the automated README from react seen below.
+## Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
