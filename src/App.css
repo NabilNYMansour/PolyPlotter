@@ -119,8 +119,7 @@ html,
 
   .input-bar {
     width: auto;
-    height: auto;
-    flex-grow: 1;
+    height: 40%;
     margin-bottom: 50px;
   }
 
@@ -129,6 +128,7 @@ html,
   }
 
   .canvas-div {
+    height: 60%;
     overflow: scroll;
   }
 }
