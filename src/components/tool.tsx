@@ -1,5 +1,5 @@
 import { Button, IconButton, TextField } from "@mui/material";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Polynomial } from "../interfaces";
 import { render } from "../render-lib/render-tool-canvas";
 import { Canvas } from "./canvas";
@@ -7,6 +7,23 @@ import { InputPolyField } from "./input-poly-field";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Add from "@mui/icons-material/Add";
 
+const useAddRemovePolys = (
+  polys: Polynomial[],
+  setPolys: (newPolys: Polynomial[]) => void
+) => {
+  const addPoly = useCallback(() => {
+    const newId = new Date().getTime() / 1000;
+    setPolys([...polys, { id: newId, polyString: "", color: "#22aaff" }]);
+  }, [polys]);
+
+  const removePoly = useCallback(
+    (polyId: number) => {
+      setPolys(polys.filter((poly) => poly.id !== polyId));
+    },
+    [polys]
+  );
+  return [addPoly, removePoly] as const;
+};
 
 export const Tool = () => {
   const [polys, setPolys] = useState<Polynomial[]>([
@@ -17,6 +34,8 @@ export const Tool = () => {
   ]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [addPoly, removePoly] = useAddRemovePolys(polys, setPolys);
 
   const updatePolyString = (id: number, newString: string) => {
     setPolys(
@@ -34,33 +53,21 @@ export const Tool = () => {
     );
   };
 
-  const addPoly = () => {
-    const newId = new Date().getTime() / 1000;
-    setPolys([...polys, { id: newId, polyString: "", color: "#22aaff" }]);
-  };
-
-  const removePoly = (polyId: number) => {
-    setPolys(polys.filter((poly) => poly.id !== polyId));
-  };
-
-  useEffect(() => {
+  const renderCanvas = useCallback(() => {
     if (canvasRef.current) {
       render(
         canvasRef.current,
         polys.filter((poly) => checkString(poly.polyString))
       );
     }
-    function handleResize() {
-      if (canvasRef.current) {
-        render(
-          canvasRef.current,
-          polys.filter((poly) => checkString(poly.polyString))
-        );
-      }
-    }
+  }, [canvasRef, polys]);
 
-    window.addEventListener("resize", handleResize);
-  }, [polys, canvasRef]);
+  useEffect(() => {
+    renderCanvas();
+
+    window.addEventListener("resize", renderCanvas);
+    return () => window.removeEventListener("resize", renderCanvas); // always clean up after putting an event listenner
+  }, [renderCanvas]);
 
   return (
     <div className="main">
@@ -84,8 +91,7 @@ export const Tool = () => {
             <Add />
           </Button>
         </div>
-        <div style={{ margin: "1em" }}>
-        </div>
+        <div style={{ margin: "1em" }}></div>
       </div>
       <div className="canvas-div">
         <Canvas canvasRef={canvasRef} />
@@ -95,5 +101,7 @@ export const Tool = () => {
 };
 
 function checkString(evalString: string) {
-  return /^(([0-9]|[1-9][0-9]*)(\.0*[1-9]+[0-9]*)?)?x(\^([0-9]|[1-9][0-9]*)(\.0*[1-9]+[0-9]*)?)?((\+|-)(([0-9]|[1-9][0-9]*)(\.0*[1-9]+[0-9]*)?)?x(\^([0-9]|[1-9][0-9]*)(\.0*[1-9]+[0-9]*)?)?)*$/g.test(evalString);
+  return /^(([0-9]|[1-9][0-9]*)(\.0*[1-9]+[0-9]*)?)?x(\^([0-9]|[1-9][0-9]*)(\.0*[1-9]+[0-9]*)?)?((\+|-)(([0-9]|[1-9][0-9]*)(\.0*[1-9]+[0-9]*)?)?x(\^([0-9]|[1-9][0-9]*)(\.0*[1-9]+[0-9]*)?)?)*$/g.test(
+    evalString
+  );
 }
